@@ -1,0 +1,172 @@
+{
+  "name": "Wazuh SIEM to n8n SOAR Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wazuh-trigger",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -448,
+        -64
+      ],
+      "id": "webhook-node",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const targetIds = [100501, 100502, 100503];\n\nconst currentId = parseInt(items[0].json?.body?.rule?.id);\n\nif (currentId && targetIds.includes(currentId)) {\n  return items;\n}\n\nreturn [];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        -64
+      ],
+      "id": "code-node",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -64
+      ],
+      "id": "aggregate-node",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"alert_type\": \"{{ $json.data.map(i => i.body.rule.description).join(', ') }}\",\n  \"user\": \"{{ $json.data.map(i => i.body.data.audit.user.name).join(', ') }}\",\n  \"command\": \"{{ $json.data.map(i => i.body.data.audit.exe).join(', ') }}\",\n  \"file_path\": \"{{ $json.data.map(i => i.body.data.audit.path).join(', ') }}\",\n  \"severity\": \"{{ $json.data.map(i => i.body.rule.level).join(', ') }}\"\n}",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        -64
+      ],
+      "id": "edit-fields-node",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "project": {
+          "__rl": true,
+          "value": "<PROJECT_ID>",
+          "mode": "list",
+          "cachedResultName": "SOC Project"
+        },
+        "issueType": {
+          "__rl": true,
+          "value": "<ISSUE_TYPE_ID>",
+          "mode": "list",
+          "cachedResultName": "Incident"
+        },
+        "summary": "=DLP Alert: Multiple incidents detected - {{ $json.user }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        448,
+        -160
+      ],
+      "id": "jira-node",
+      "name": "Create Jira Issue",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "name": "Jira Cloud Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "your-email@example.com",
+        "toEmail": "security-team@example.com",
+        "subject": "=[SECURITY ALERT] Multiple DLP Incidents Detected",
+        "html": "=<h3>DLP Security Alert Triggered</h3>\n<p><strong>Severity:</strong> {{ $json.severity }}</p>\n<p><strong>Alert Type:</strong> {{ $json.alert_type }}</p>\n<p><strong>Users Involved:</strong> {{ $json.user }}</p>\n<p><strong>Files Accessed:</strong> {{ $json.file_path }}</p>\n<p><strong>Command Executed:</strong> {{ $json.command }}</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        32
+      ],
+      "id": "email-node",
+      "name": "Send Email",
+      "credentials": {
+        "smtp": {
+          "name": "SMTP Account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Create Jira Issue",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  }
+}
