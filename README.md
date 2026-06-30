@@ -702,6 +702,4 @@ The implementation combines multiple security tools into a single automated work
 
 # License
 
-This project is released under the MIT License.
-
-Feel free to use, modify, and extend this project for educational and personal learning purposes.
+This project is released under the Private and Own License.
