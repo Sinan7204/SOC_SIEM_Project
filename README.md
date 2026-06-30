@@ -32,10 +32,6 @@ The architecture consists of Windows and Ubuntu endpoints monitored by Wazuh Age
 The workflow receives alerts from Wazuh through an HTTP Webhook. A JavaScript Code node filters only the Rule IDs associated with the DLP simulation. Matching alerts are aggregated, formatted, and used to create Jira issues while simultaneously notifying the security analyst through email.
 
 
-# System Architecture
-![](./Images/architecture.png)
-The architecture consists of Windows and Ubuntu endpoints monitored by Wazuh Agents. Security telemetry from endpoint and network monitoring tools is forwarded to the Wazuh OVA, where events are analyzed and converted into alerts. A Python bridge streams these alerts to n8n for automated processing, resulting in email notifications and Jira incident creation.
-
 ---
 
 
