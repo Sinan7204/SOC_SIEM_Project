@@ -19,20 +19,14 @@ This project was developed to gain hands-on experience with SIEM operations, sec
 ---
 
 # System Architecture
-
-<p align="center">
-    <img src="images/architecture.png" alt="System Architecture" width="950">
-</p>
-
+![](./Images/architecture.png)
 The architecture consists of Windows and Ubuntu endpoints monitored by Wazuh Agents. Security telemetry from endpoint and network monitoring tools is forwarded to the Wazuh OVA, where events are analyzed and converted into alerts. A Python bridge streams these alerts to n8n for automated processing, resulting in email notifications and Jira incident creation.
 
 ---
 
 # n8n Workflow
 
-<p align="center">
-    <img src="images/n8n-workflow.png" alt="n8n Workflow" width="1000">
-</p>
+![](./Images/n8n-workflow.png)
 
 The workflow receives alerts from Wazuh through an HTTP Webhook. A JavaScript Code node filters only the Rule IDs associated with the DLP simulation. Matching alerts are aggregated, formatted, and used to create Jira issues while simultaneously notifying the security analyst through email.
 
